@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -18,7 +19,16 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'times': ['Times New Roman', 'serif'],
+			},
 			colors: {
+				// Custom shopping tracker palette
+				cream: '#FDF6E3',
+				'baby-pink': '#F8D7DA',
+				'muted-red': '#D1586B',
+				'soft-pink': '#F5E6E8',
+				
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
