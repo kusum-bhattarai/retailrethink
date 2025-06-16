@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ShoppingBag, Calendar, DollarSign, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import CategoryTabs, { ExpenseCategory } from './CategoryTabs';
+import CategoryTabs, { ExpenseCategory, AppView } from './CategoryTabs';
+import AnalysisDashboard from './AnalysisDashboard';
 
 interface Purchase {
   id: string;
@@ -75,7 +75,8 @@ const CATEGORY_LABELS = {
 };
 
 const ShoppingTracker = () => {
-  const [activeCategory, setActiveCategory] = useState<ExpenseCategory>('shopping');
+  const [activeView, setActiveView] = useState<AppView>('shopping');
+  const [activeCategory, setActiveCategory] = useState<ExpenseCategory>('shopping'); // Initialize activeCategory
   const [currentSite, setCurrentSite] = useState('');
   const [currentItem, setCurrentItem] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
@@ -275,123 +276,138 @@ const ShoppingTracker = () => {
         {/* Category Navigation */}
         <div className="mb-6">
           <CategoryTabs 
-            activeCategory={activeCategory} 
-            onCategoryChange={setActiveCategory}
+            activeView={activeView} 
+            onViewChange={(view) => {
+              setActiveView(view);
+              if (view !== 'analysis') {
+                setActiveCategory(view as ExpenseCategory);
+              }
+            }} 
           />
         </div>
 
-        {/* Budget Overview */}
-        <Card className="mb-6 bg-white/80 backdrop-blur-sm border-baby-pink shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-muted-red">
-              <DollarSign className="h-6 w-6" />
-              {currentMonth} {CATEGORY_LABELS[activeCategory]} Budget
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-baby-pink/30 rounded-lg">
-                <p className="text-sm text-muted-red/70 mb-1">Monthly Threshold</p>
-                <p className="text-2xl font-bold text-muted-red">${currentThreshold.toFixed(2)}</p>
-              </div>
-              <div className="text-center p-4 bg-baby-pink/30 rounded-lg">
-                <p className="text-sm text-muted-red/70 mb-1">Spent This Month</p>
-                <p className="text-2xl font-bold text-muted-red">${currentCategoryTotal.toFixed(2)}</p>
-              </div>
-              <div className="text-center p-4 bg-baby-pink/30 rounded-lg">
-                <p className="text-sm text-muted-red/70 mb-1">Remaining Budget</p>
-                <p className={`text-2xl font-bold ${(currentThreshold - currentCategoryTotal) < 0 ? 'text-red-600' : 'text-muted-red'}`}>
-                  ${Math.max(0, currentThreshold - currentCategoryTotal).toFixed(2)}
-                </p>
-              </div>
-            </div>
-            
-            <div className="mt-4 flex gap-2">
-              <Button 
-                onClick={() => setShowThresholdDialog(true)}
-                variant="outline"
-                className="border-muted-red text-muted-red hover:bg-baby-pink"
-              >
-                Update Budget
-              </Button>
-              <Button 
-                onClick={() => setShowHistoryDialog(true)}
-                variant="outline"
-                className="border-muted-red text-muted-red hover:bg-baby-pink"
-              >
-                View History
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Add Purchase Form */}
-        <Card className="mb-6 bg-white/80 backdrop-blur-sm border-baby-pink shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-muted-red">Add New {CATEGORY_LABELS[activeCategory]} Expense</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Select value={currentSite} onValueChange={setCurrentSite}>
-                <SelectTrigger className="border-baby-pink focus:border-muted-red">
-                  <SelectValue placeholder="Select store/service" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border-baby-pink">
-                  {SITE_OPTIONS[activeCategory].map((site) => (
-                    <SelectItem key={site} value={site}>{site}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Input
-                placeholder="What did you buy/pay for?"
-                value={currentItem}
-                onChange={(e) => setCurrentItem(e.target.value)}
-                className="border-baby-pink focus:border-muted-red"
-              />
-              
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="Price ($)"
-                value={currentPrice}
-                onChange={(e) => setCurrentPrice(e.target.value)}
-                className="border-baby-pink focus:border-muted-red"
-              />
-              
-              <Button 
-                onClick={handleAddPurchase}
-                className="bg-muted-red hover:bg-muted-red/90 text-white"
-              >
-                Add Expense
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Current Category Purchases */}
-        <Card className="bg-white/80 backdrop-blur-sm border-baby-pink shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-muted-red">{currentMonth} {CATEGORY_LABELS[activeCategory]} Expenses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {currentData[activeCategory].purchases.length === 0 ? (
-              <p className="text-muted-red/70 text-center py-8">No {CATEGORY_LABELS[activeCategory].toLowerCase()} expenses yet this month!</p>
-            ) : (
-              <div className="space-y-3">
-                {currentData[activeCategory].purchases.map((purchase) => (
-                  <div key={purchase.id} className="flex justify-between items-center p-3 bg-baby-pink/20 rounded-lg">
-                    <div>
-                      <p className="font-semibold text-muted-red">{purchase.item}</p>
-                      <p className="text-sm text-muted-red/70">{purchase.site} • {purchase.date}</p>
-                    </div>
-                    <p className="font-bold text-muted-red">${purchase.price.toFixed(2)}</p>
+        {activeView === 'analysis' ? (
+          <AnalysisDashboard
+            currentData={currentData}
+            monthlyHistory={monthlyHistory}
+            currentMonth={currentMonth}
+          />
+        ) : (
+          <>
+            {/* Budget Overview */}
+            <Card className="mb-6 bg-white/80 backdrop-blur-sm border-baby-pink shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-muted-red">
+                  <DollarSign className="h-6 w-6" />
+                  {currentMonth} {CATEGORY_LABELS[activeCategory]} Budget
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-baby-pink/30 rounded-lg">
+                    <p className="text-sm text-muted-red/70 mb-1">Monthly Threshold</p>
+                    <p className="text-2xl font-bold text-muted-red">${currentThreshold.toFixed(2)}</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <div className="text-center p-4 bg-baby-pink/30 rounded-lg">
+                    <p className="text-sm text-muted-red/70 mb-1">Spent This Month</p>
+                    <p className="text-2xl font-bold text-muted-red">${currentCategoryTotal.toFixed(2)}</p>
+                  </div>
+                  <div className="text-center p-4 bg-baby-pink/30 rounded-lg">
+                    <p className="text-sm text-muted-red/70 mb-1">Remaining Budget</p>
+                    <p className={`text-2xl font-bold ${(currentThreshold - currentCategoryTotal) < 0 ? 'text-red-600' : 'text-muted-red'}`}>
+                      ${Math.max(0, currentThreshold - currentCategoryTotal).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mt-4 flex gap-2">
+                  <Button 
+                    onClick={() => setShowThresholdDialog(true)}
+                    variant="outline"
+                    className="border-muted-red text-muted-red hover:bg-baby-pink"
+                  >
+                    Update Budget
+                  </Button>
+                  <Button 
+                    onClick={() => setShowHistoryDialog(true)}
+                    variant="outline"
+                    className="border-muted-red text-muted-red hover:bg-baby-pink"
+                  >
+                    View History
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Add Purchase Form */}
+            <Card className="mb-6 bg-white/80 backdrop-blur-sm border-baby-pink shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-muted-red">Add New {CATEGORY_LABELS[activeCategory]} Expense</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Select value={currentSite} onValueChange={setCurrentSite}>
+                    <SelectTrigger className="border-baby-pink focus:border-muted-red">
+                      <SelectValue placeholder="Select store/service" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-baby-pink">
+                      {SITE_OPTIONS[activeCategory].map((site) => (
+                        <SelectItem key={site} value={site}>{site}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Input
+                    placeholder="What did you buy/pay for?"
+                    value={currentItem}
+                    onChange={(e) => setCurrentItem(e.target.value)}
+                    className="border-baby-pink focus:border-muted-red"
+                  />
+                  
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="Price ($)"
+                    value={currentPrice}
+                    onChange={(e) => setCurrentPrice(e.target.value)}
+                    className="border-baby-pink focus:border-muted-red"
+                  />
+                  
+                  <Button 
+                    onClick={handleAddPurchase}
+                    className="bg-muted-red hover:bg-muted-red/90 text-white"
+                  >
+                    Add Expense
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Current Category Purchases */}
+            <Card className="bg-white/80 backdrop-blur-sm border-baby-pink shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-muted-red">{currentMonth} {CATEGORY_LABELS[activeCategory]} Expenses</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {currentData[activeCategory].purchases.length === 0 ? (
+                  <p className="text-muted-red/70 text-center py-8">No {CATEGORY_LABELS[activeCategory].toLowerCase()} expenses yet this month!</p>
+                ) : (
+                  <div className="space-y-3">
+                    {currentData[activeCategory].purchases.map((purchase) => (
+                      <div key={purchase.id} className="flex justify-between items-center p-3 bg-baby-pink/20 rounded-lg">
+                        <div>
+                          <p className="font-semibold text-muted-red">{purchase.item}</p>
+                          <p className="text-sm text-muted-red/70">{purchase.site} • {purchase.date}</p>
+                        </div>
+                        <p className="font-bold text-muted-red">${purchase.price.toFixed(2)}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Set Threshold Dialog */}
