@@ -3,15 +3,16 @@ import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export type ExpenseCategory = 'shopping' | 'groceries' | 'rent-utilities';
+export type AppView = ExpenseCategory | 'analysis';
 
 interface CategoryTabsProps {
-  activeCategory: ExpenseCategory;
-  onCategoryChange: (category: ExpenseCategory) => void;
+  activeView: AppView;
+  onViewChange: (view: AppView) => void;
 }
 
-const CategoryTabs = ({ activeCategory, onCategoryChange }: CategoryTabsProps) => {
+const CategoryTabs = ({ activeView, onViewChange }: CategoryTabsProps) => {
   return (
-    <Tabs value={activeCategory} onValueChange={(value) => onCategoryChange(value as ExpenseCategory)}>
+    <Tabs value={activeView} onValueChange={(value) => onViewChange(value as ExpenseCategory)}>
       <TabsList className="grid w-full grid-cols-3 bg-white/80 border-baby-pink">
         <TabsTrigger 
           value="shopping" 
@@ -30,6 +31,12 @@ const CategoryTabs = ({ activeCategory, onCategoryChange }: CategoryTabsProps) =
           className="text-muted-red data-[state=active]:bg-baby-pink data-[state=active]:text-muted-red"
         >
           Rent & Utilities
+        </TabsTrigger>
+        <TabsTrigger 
+          value="analysis"
+          className="text-muted-red data-[state=active]:bg-baby-pink data-[state=active]:text-muted-red"
+        >
+          Analysis
         </TabsTrigger>
       </TabsList>
     </Tabs>
