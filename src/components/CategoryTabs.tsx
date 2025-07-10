@@ -13,7 +13,7 @@ interface CategoryTabsProps {
 const CategoryTabs = ({ activeView, onViewChange }: CategoryTabsProps) => {
   return (
     <Tabs value={activeView} onValueChange={(value) => onViewChange(value as ExpenseCategory)}>
-      <TabsList className="grid w-full grid-cols-3 bg-white/80 border-baby-pink">
+      <TabsList className="grid w-full grid-cols-4 bg-white/80 border-baby-pink">
         <TabsTrigger 
           value="shopping" 
           className="text-muted-red data-[state=active]:bg-baby-pink data-[state=active]:text-muted-red"
